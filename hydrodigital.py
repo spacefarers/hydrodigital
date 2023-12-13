@@ -9,7 +9,7 @@ from keras import layers, models
 from pathlib import Path
 
 # Change those settings to match your own directory
-audio_dir = '/mnt/c/Users/micha/Downloads/data/'
+audio_dir = '/mnt/c/Users/micha/Downloads/normalized/'
 chopped_dir = '/mnt/c/Users/micha/Downloads/chopped/'
 
 
@@ -38,6 +38,7 @@ def load_wav_16k_mono(filename):
 
 
 def split_and_save_audio(input_audio_file, category, num_segments):
+    Path(chopped_dir+category).mkdir(parents=True, exist_ok=True)
     audio = AudioSegment.from_wav(input_audio_file)
 
     for i in range(num_segments):
@@ -56,7 +57,6 @@ def scan_splice():
         files.append(f)
     num_segments = 100  # length of audio divided by 3 seconds
     for i in files:
-        Path(audio_dir + i).mkdir(parents=True, exist_ok=True)
         split_and_save_audio(audio_dir + i, i.split('.')[0], num_segments)
 
 
@@ -181,12 +181,12 @@ def train(train_spectrogram_ds, val_spectrogram_ds, class_names, epochs):
 if __name__ == '__main__':
     epochs = 5
     # Run Scan Splice on first run to splice the data
-    # scan_splice()
-    train_spectrogram_ds, val_spectrogram_ds, test_spectrogram_ds, class_names, train_ds, val_ds, test_ds = load_data()
+    scan_splice()
+    # train_spectrogram_ds, val_spectrogram_ds, test_spectrogram_ds, class_names, train_ds, val_ds, test_ds = load_data()
 
     # To Visualize Spectrogram
     # visualize_spectrogram(val_ds, class_names)
 
     # Model Training and Evaluation
-    model, history = train(train_spectrogram_ds, val_spectrogram_ds, class_names, epochs)
-    model.evaluate(test_spectrogram_ds, return_dict=True)
+    # model, history = train(train_spectrogram_ds, val_spectrogram_ds, class_names, epochs)
+    # model.evaluate(test_spectrogram_ds, return_dict=True)
