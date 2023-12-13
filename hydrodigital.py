@@ -7,6 +7,8 @@ import scipy.io.wavfile as wav
 from pydub import AudioSegment
 from keras import layers, models
 from pathlib import Path
+import matplotlib
+
 
 # Change those settings to match your own directory
 audio_dir = '/mnt/c/Users/micha/Downloads/normalized/'
@@ -121,9 +123,18 @@ def plot_spectrogram(spectrogram, ax):
 
 
 def visualize_spectrogram(ds, class_names):
-    example_audio,example_label = next(iter(train_ds))
-    waveform = example_audio[0]
-    label = class_names[example_label[0]]
+    plots = {}
+    cnt=0
+    for example_audio,example_label in train_ds:
+        for i in range(5):
+            plots[class_names[example_label[i]]] = example_audio[i]
+        cnt+=1
+        if cnt == 30:
+            break
+    visualize_key = "20"
+    matplotlib.use('Agg')
+    waveform = plots[visualize_key]
+    label = visualize_key
     spectrogram = get_spectrogram(waveform)
     fig, axes = plt.subplots(2, figsize=(12, 8))
     timescale = np.arange(waveform.shape[0])
@@ -134,7 +145,8 @@ def visualize_spectrogram(ds, class_names):
     plot_spectrogram(spectrogram.numpy(), axes[1])
     axes[1].set_title('Spectrogram')
     plt.suptitle(label.title())
-    plt.show()
+    # plt.show()
+    plt.savefig(f'{visualize_key}.png')
 
 
 def train(train_spectrogram_ds, val_spectrogram_ds, class_names, epochs):
@@ -181,12 +193,13 @@ def train(train_spectrogram_ds, val_spectrogram_ds, class_names, epochs):
 if __name__ == '__main__':
     epochs = 5
     # Run Scan Splice on first run to splice the data
-    scan_splice()
-    # train_spectrogram_ds, val_spectrogram_ds, test_spectrogram_ds, class_names, train_ds, val_ds, test_ds = load_data()
+    # scan_splice()
+    train_spectrogram_ds, val_spectrogram_ds, test_spectrogram_ds, class_names, train_ds, val_ds, test_ds = load_data()
 
     # To Visualize Spectrogram
     # visualize_spectrogram(val_ds, class_names)
 
     # Model Training and Evaluation
-    # model, history = train(train_spectrogram_ds, val_spectrogram_ds, class_names, epochs)
-    # model.evaluate(test_spectrogram_ds, return_dict=True)
+    model, history = train(train_spectrogram_ds, val_spectrogram_ds, class_names, epochs)
+    model.evaluate(test_spectrogram_ds, return_dict=True)
+    # model.save('hydrodigital.h5')
